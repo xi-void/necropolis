@@ -16,7 +16,7 @@ class NameTests(unittest.TestCase):
         self.assertTrue(all(len(name.split()) == 2 for name in names))
 
     def test_names_do_not_change_behavior(self):
-        a, b = World(Config(seed=47)), World(Config(seed=47))
+        a, b = World(Config(mine_count=0, necromancy=False, grave_count=0, seed=47)), World(Config(mine_count=0, necromancy=False, grave_count=0, seed=47))
         for c in b.citizens:
             c.name = "Someone Else"
         for _ in range(72):
@@ -25,7 +25,7 @@ class NameTests(unittest.TestCase):
         self.assertEqual(a.events, b.events)
 
     def test_trade_display_names_both_participants(self):
-        world = World(Config(citizens=2, patches=0))
+        world = World(Config(mine_count=0, necromancy=False, grave_count=0, citizens=2, patches=0))
         seller, buyer = world.citizens
         seller.food = 5
         world.trade(buyer, seller)

@@ -6,7 +6,7 @@ from necropolis.simulation import Config, World, replay
 
 class SimulationTests(unittest.TestCase):
     def test_determinism_and_replay(self):
-        a, b = World(Config(seed=47)), World(Config(seed=47))
+        a, b = World(Config(mine_count=0, necromancy=False, grave_count=0, seed=47)), World(Config(mine_count=0, necromancy=False, grave_count=0, seed=47))
         for _ in range(240):
             a.step()
             b.step()
@@ -19,7 +19,7 @@ class SimulationTests(unittest.TestCase):
 
     def test_resource_accounting_across_seeds(self):
         for seed in range(10):
-            world = World(Config(seed=seed))
+            world = World(Config(mine_count=0, necromancy=False, grave_count=0, seed=seed))
             initial = sum(world.food.values()) + sum(c.food for c in world.citizens)
             for _ in range(240):
                 world.step()
@@ -32,7 +32,7 @@ class SimulationTests(unittest.TestCase):
             self.assertTrue(all(c.money >= 0 and 0 <= c.food <= c.capacity for c in world.citizens))
 
     def test_local_trade_transfers_food_and_money(self):
-        world = World(Config(citizens=2, patches=0))
+        world = World(Config(mine_count=0, necromancy=False, grave_count=0, citizens=2, patches=0))
         seller, buyer = world.citizens
         seller.x = buyer.x = seller.y = buyer.y = 0
         seller.food, buyer.food = 5, 0
@@ -43,19 +43,19 @@ class SimulationTests(unittest.TestCase):
         self.assertEqual(world.events[-1]["seller"], seller.id)
 
     def test_farmer_produces_only_on_patch(self):
-        world = World(Config(citizens=1, patches=1))
+        world = World(Config(mine_count=0, necromancy=False, grave_count=0, citizens=1, patches=1))
         farmer = world.citizens[0]
         farmer.x, farmer.y = next(iter(world.patches))
         world.step()
         self.assertEqual(farmer.food, 3)
         self.assertEqual(world.events[-1]["kind"], "produce")
-        empty = World(Config(citizens=1, patches=0))
+        empty = World(Config(mine_count=0, necromancy=False, grave_count=0, citizens=1, patches=0))
         empty.step()
         self.assertEqual(empty.citizens[0].food, 2)
         self.assertFalse(any(e["kind"] == "produce" for e in empty.events))
 
     def test_trade_requires_local_affordable_surplus(self):
-        world = World(Config(citizens=2, patches=0))
+        world = World(Config(mine_count=0, necromancy=False, grave_count=0, citizens=2, patches=0))
         seller, buyer = world.citizens
         seller.food, buyer.food = 5, 0
         seller.x = seller.y = 0
@@ -69,15 +69,15 @@ class SimulationTests(unittest.TestCase):
         self.assertEqual(world.sellers(buyer), [])
 
     def test_dropped_food_does_not_create_renewable_patch(self):
-        world = World(Config(citizens=1, patches=0))
+        world = World(Config(mine_count=0, necromancy=False, grave_count=0, citizens=1, patches=0))
         world.citizens[0].food = 0
         for _ in range(72):
             world.step()
         self.assertEqual(sum(world.food.values()), 0)
 
     def test_unseen_food_does_not_change_decision(self):
-        a = World(Config(seed=3, citizens=1, patches=0))
-        b = World(Config(seed=3, citizens=1, patches=0))
+        a = World(Config(mine_count=0, necromancy=False, grave_count=0, seed=3, citizens=1, patches=0))
+        b = World(Config(mine_count=0, necromancy=False, grave_count=0, seed=3, citizens=1, patches=0))
         for world in (a, b):
             world.citizens[0].x = world.citizens[0].y = 0
             world.citizens[0].food = 0
@@ -87,7 +87,7 @@ class SimulationTests(unittest.TestCase):
         self.assertEqual(a.citizens, b.citizens)
 
     def test_scarcity_causes_starvation(self):
-        world = World(Config(patches=0))
+        world = World(Config(mine_count=0, necromancy=False, grave_count=0, patches=0))
         for _ in range(72):
             world.step()
         self.assertFalse(any(c.alive for c in world.citizens))
